@@ -6,7 +6,7 @@ Repository for performing impact studies on DiFFs and transversity PDFs.
 
 * <ins>analysis</ins>: This folder contains the code used to analyze the replicas.  This includes doing predictions, plotting data vs. theory, and plotting the distributions.
 
-* <ins>driver.py</ins>: Running driver.py <wdir> will analyze the replicas using the codes in the analysis folder.  Doing so also requires [Diffpack][Diffpack].  One runs it by using the command <code>./driver.py <wdir> </code>, where <wdir> is the working directory to be analyzed (in this case baseline). 
+* <ins>driver.py</ins>: Running driver.py <wdir> will analyze the replicas using the codes in the analysis folder.  Doing so also requires [Diffpack][Diffpack].  One runs it by using the command <code>./driver.py wdir </code>, where wdir is the working directory to be analyzed (in this case baseline). 
 
 * <ins>pseudo.xlsx</ins>: This Excel file contains made up pseudo data for testing.
 
