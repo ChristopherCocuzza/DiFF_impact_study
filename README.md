@@ -2,7 +2,7 @@
 
 Repository for performing impact studies on DiFFs and transversity PDFs.
 
-* <ins>baseline</ins>: This folder contains the baseline replicas from [our latest paper][paper].  They are contained in the folder msr.
+* <ins>baseline</ins>: This folder contains the baseline replicas from [our latest paper][paper].  They are contained in the folder msr.  It also contains the input file for running the fit.
 
 * <ins>analysis</ins>: This folder contains the code used to analyze the replicas.  This includes doing predictions, plotting data vs. theory, and plotting the distributions.
 
