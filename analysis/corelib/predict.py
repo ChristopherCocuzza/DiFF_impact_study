@@ -66,17 +66,17 @@ def get_predictions(wdir,force=False,ncores=1,mod_conf=None,name=''):
     order=parman.order
     datasets = copy.copy(conf['datasets'])
        
-    obsres={}
-    if 'dihadron'       in conf['datasets'] : obsres['dihadron']       = resman.dihadron_res
-    if 'dihadron_sia'   in conf['datasets'] : obsres['dihadron_sia']   = resman.dihadron_sia_res
-    if 'dihadron_sidis' in conf['datasets'] : obsres['dihadron_sidis'] = resman.dihadron_sidis_res
-    if 'dihadron_pp'    in conf['datasets'] : obsres['dihadron_pp']    = resman.dihadron_pp_res
-    if 'moments'        in conf['datasets'] : obsres['moments']        = resman.moments_res
-    if 'sidis'          in conf['datasets'] : obsres['sidis']          = resman.sidis_res
-    if 'sia'            in conf['datasets'] : obsres['sia']            = resman.sia_res
-    if 'AN'             in conf['datasets'] : obsres['AN']             = resman.AN_res
-    if 'wz'             in conf['datasets'] : obsres['wz']             = resman.wz_res
-    if 'dy'             in conf['datasets'] : obsres['dy']             = resman.dy_res
+    obsres=resman.residuals
+    #if 'dihadron'       in conf['datasets'] : obsres['dihadron']       = resman.dihadron_res
+    #if 'dihadron_sia'   in conf['datasets'] : obsres['dihadron_sia']   = resman.dihadron_sia_res
+    #if 'dihadron_sidis' in conf['datasets'] : obsres['dihadron_sidis'] = resman.dihadron_sidis_res
+    #if 'dihadron_pp'    in conf['datasets'] : obsres['dihadron_pp']    = resman.dihadron_pp_res
+    #if 'moments'        in conf['datasets'] : obsres['moments']        = resman.moments_res
+    #if 'sidis'          in conf['datasets'] : obsres['sidis']          = resman.sidis_res
+    #if 'sia'            in conf['datasets'] : obsres['sia']            = resman.sia_res
+    #if 'AN'             in conf['datasets'] : obsres['AN']             = resman.AN_res
+    #if 'wz'             in conf['datasets'] : obsres['wz']             = resman.wz_res
+    #if 'dy'             in conf['datasets'] : obsres['dy']             = resman.dy_res
     #--setup big table to store all we want
     data={}
     data['name'] = [] 
