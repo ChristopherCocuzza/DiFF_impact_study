@@ -1,0 +1,151 @@
+#!/usr/bin/env python
+import time
+import os,sys
+import argparse
+import subprocess
+
+
+#--from tools
+from tools.randomstr import id_generator
+from tools.tools import checkdir,load
+
+#--user dependent paths
+user    ='ccocuzza'
+path    ='/work/JAM/'
+fitpack ='%s/ccocuzza/Diffpack'%path
+#fitpack ='%s/ccocuzza/jam3d'%path
+wdir    =os.getcwd()
+#--get python version
+version = sys.version[0]
+python  ='%s/apps/anaconda%s/bin/python'%(path,version)
+
+analysis = 'diffs'
+#--account can be chosen as jam or f4thy
+template="""#!/bin/csh
+#SBATCH --account=jam
+#SBATCH --nodes 1
+#SBATCH --partition=production
+#SBATCH --cpus-per-task <cpu>
+#SBATCH --mem=<mem>G
+#SBATCH --time=90:00:00
+#SBATCH --constraint=general
+#SBATCH --job-name="<name>"
+#SBATCH --output=/farm_out/ccocuzza/<analysis>/<directory>/out/<name>.out
+#SBATCH --error=/farm_out/ccocuzza/<analysis>/<directory>/err/<name>.err
+
+setenv DIFFPACK <fitpack>
+<python>  <fitpack>/fitlib/maxlike.py -n <cpu> -v <verbose> <input> -msrh "mv <<fname>> <wdir>/<directory>/msr/" <prior>
+
+"""
+
+template=template.replace('<python>',python)
+template=template.replace('<fitpack>',fitpack)
+template=template.replace('<wdir>',wdir)
+template=template.replace('<analysis>',analysis)
+
+
+def gen_script(track,directory,step,prior=None,INPUT='input',cpu=1,mem=1,verbose=100):
+    fname='%s-%s'%(step,id_generator(size=10))
+    script=template[:]
+    script=script.replace('<name>',fname)
+    script=script.replace('<track>',track)
+    script=script.replace('<directory>',directory)
+    script=script.replace('<verbose>',str(verbose))
+    script=script.replace('<input>',str(INPUT))
+    script=script.replace('<cpu>',str(cpu))
+    script=script.replace('<mem>',str(mem))
+    if  prior==None: 
+        script=script.replace('<prior>','')
+    else: 
+        script=script.replace('<prior>','-p %s'%prior)
+
+    F=open('current.sbatch','w')
+    F.writelines(script)
+    F.close()
+
+def pexit(msg):
+    print(msg)
+    sys.exit()
+
+if __name__=='__main__':
+
+    print('Submitting jobs to farm...')
+
+    ap = argparse.ArgumentParser()
+    msg =" 0: flat"
+    msg+=" 1: with priors"
+    msg+=" 2: with opt-priors"
+
+    ap.add_argument('task'             ,type=int                     ,help=msg)
+    ap.add_argument('-d','--directory' ,type=str ,default='unamed'   ,help='directory name to store results')
+    ap.add_argument('-p','--priors'    ,type=str ,default='unamed'   ,help='priors')
+    ap.add_argument('-n','--njobs'     ,type=int ,default=None       ,help='number of jobs')
+    ap.add_argument('-t','--test'      ,type=bool,default=False      ,help='test flag')
+    ap.add_argument('-s','--step'      ,type=str ,default='01'       ,help='step for job naming purposes')
+    ap.add_argument('-i','--INPUT'     ,type=str ,default='input.py' ,help='input file to use')
+    ap.add_argument('-c','--cpu'       ,type=str ,default=1          ,help='number of cpus')
+    ap.add_argument('-m','--mem'       ,type=str ,default=1          ,help='GB of memory')
+    args = ap.parse_args()
+
+    if args.directory=='unamed': pexit('specify -d')
+
+    checkdir('/farm_out/ccocuzza/%s/%s/out'%(analysis,args.directory))
+    checkdir('/farm_out/ccocuzza/%s/%s/err'%(analysis,args.directory))
+    checkdir('%s/msr'%args.directory)
+
+    if os.path.exists('%s/input.py'%args.directory): 
+        print('Input file at %s already exists'%args.directory) 
+        pass
+    else:
+        print('Copying input file to %s'%args.directory) 
+        os.system('cp %s %s/input.py'%(args.INPUT,args.directory))
+  
+    if  args.task==0:
+
+          cnt=0
+          track='theory'
+          while 1:
+              cnt+=1 
+              print(cnt)
+              gen_script(track,args.directory,args.step,None,INPUT=args.INPUT,cpu=args.cpu,mem=args.mem)
+              if args.test:
+                  os.system('source current.sbatch')
+                  os.remove('current.sbatch')
+                  break
+              else:
+                  os.system('sbatch current.sbatch')
+                  os.remove('current.sbatch')
+              if cnt==args.njobs: break
+              time.sleep(0.1)
+
+    elif  args.task==1 or args.task==2:
+          track='theory'
+          if args.task==1: path2priors='%s/%s/msr-inspected'%(wdir,args.priors)
+          if args.task==2: 
+              path2priors='%s/%s/msr-opt-priors'%(wdir,args.priors)
+              print('Using opt-priors...' )
+          msr=os.listdir(path2priors)
+          path2running='/farm_out/ccocuzza/%s/%s/out'%(analysis,args.directory)
+          running = [_.replace('jam-','').replace('.out','.msr') \
+                     for _ in os.listdir(path2running)\
+                     if _.endswith('err')==False]
+
+          done = os.listdir('%s/%s/msr'%(wdir,args.directory))
+          cnt  = 0
+          dcnt = 0
+          for prior in msr:
+              if cnt==args.njobs: break
+              print('%d/%d'%(cnt+dcnt+1,len(msr)))
+              if prior in done:
+                  dcnt +=1
+                  continue 
+              cnt+=1
+              gen_script(track,args.directory,args.step,'%s/%s'%(path2priors,prior),INPUT=args.INPUT,cpu=args.cpu,mem=args.mem)
+              os.system('sbatch current.sbatch')
+              os.remove('current.sbatch')
+              if args.test: break
+              time.sleep(0.1)
+
+
+
+
